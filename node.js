@@ -1,5 +1,5 @@
 class Node {
-	constructor(vertices, color){
+	constructor(vertices, color, daddy){
 		this.vertices = vertices.slice();
 		if(color == null)
 			this.color = [random(255), random(255), random(255)];
@@ -7,6 +7,7 @@ class Node {
 			this.color = color.slice();
 		this.noChildren = true;
 		this.children = [null, null];
+		this.daddy = daddy;
 	}
 
 	draw(){
@@ -51,7 +52,7 @@ class Node {
 			if(this.children[1] != null)
 				this.children[1].checkIfDividing(start, end);
 		} else if ((this.checkIfInside(start, this.vertices)) || (this.checkIfInside(end, this.vertices))){
-			//deleteNode
+			this.fraternalMurderSuicide();
 		}
 	}
 
@@ -73,20 +74,22 @@ class Node {
 		var a = (end.y - start.y) / (end.x - start.x);
 		var b = end.y - a * end.x;
 		//expanding line segment to the screen limits for covenience sake
-		newStart.x = 0;
-		newStart.y = b;
-		newEnd.x = width;
-		newEnd.y = a * width + b;
+		newStart.x = -1;
+		newStart.y = -a + b;
+		newEnd.x = width + 1;
+		newEnd.y = a * (width+1) + b;
 
 		//testing if line segments intersect and getting those points
 		for(var i = 0; i < this.vertices.length; i++){
 			auxStart.x = this.vertices[i][0];
 			auxStart.y = this.vertices[i][1];
 			mod = (i+1)%this.vertices.length;
+			console.log(mod);
 			auxEnd.x = this.vertices[mod][0];
 			auxEnd.y = this.vertices[mod][1];
 
-			if(this.intersectionExists(start, end, auxStart, auxEnd)){
+			if(this.intersectionExists(newStart, newEnd, auxStart, auxEnd)){
+				console.log("hey");
 				interPoint = this.intersectionPoint(newStart, newEnd, auxStart, auxEnd);
 				verticesLeft.push([interPoint.x, interPoint.y]);
 				verticesRight.push([interPoint.x, interPoint.y]);
@@ -107,8 +110,8 @@ class Node {
 		console.log(verticesLeft);
 		console.log("b");
 		console.log(verticesRight);
-		this.children[0] = new Node(verticesLeft, this.color);
-		this.children[1] = new Node(verticesRight, null);
+		this.children[0] = new Node(verticesLeft, this.color, this);
+		this.children[1] = new Node(verticesRight, null, this);
 	}
 
 
@@ -164,12 +167,21 @@ class Node {
 		});
 
 		for(i=0; i< vertices.length; i++){
-			vertices[i].slice(0,2);
+			vertices[i] = vertices[i].slice(0,2);
 		}
 	}
 
 	//0 on the line, and +1 on one side, -1 on the other side
 	relativePosition(start, end, point){
 		return Math.sign((end.x - start.x)*(point.y - start.y) - (end.y - start.y)*(point.x - start.x));	
+	}
+
+	fraternalMurderSuicide(){
+		console.log("oi");
+		var papi = this.daddy;
+		if(papi != null){
+			papi.children = [null, null];
+			papi.noChildren = true;	
+		}
 	}
 }
