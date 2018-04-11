@@ -27,7 +27,7 @@ class Node {
 		//baseado em https://github.com/substack/point-in-polygon
 		var x = point.x;
 		var y = point.y;
-		isInside = false;
+		var inside = false;
 
 		for (var i = 0, j = vertices.length - 1; i < vertices.length; j = i++){
 			var xi = vertices[i][0];
@@ -41,16 +41,16 @@ class Node {
 
 		return inside;
 	}
-		
+
 	checkIfDividing(start, end){
-		if ((checkIfInside(start, this.vertices)) && (checkIfInside(end, this.vertices)) && (noChildren)){
-			createChildren(start, end);
-		} else if  ((checkIfInside(start, this.vertices)) && (checkIfInside(end, this.vertices)) && (!noChildren)){
+		if ((this.checkIfInside(start, this.vertices)) && (this.checkIfInside(end, this.vertices)) && (this.noChildren)){
+			this.createChildren(start, end);
+		} else if  ((this.checkIfInside(start, this.vertices)) && (this.checkIfInside(end, this.vertices)) && (!this.noChildren)){
 			if(this.children[0] != null)
-				checkIfDividing(this.children[0])
+				this.children[0].checkIfDividing(start, end);
 			if(this.children[1] != null)
-				checkIfDividing(this.children[1])
-		} else if ((checkIfInside(start, this.vertices)) || (checkIfInside(end, this.vertices))){
+				this.children[1].checkIfDividing(start, end);
+		} else if ((this.checkIfInside(start, this.vertices)) || (this.checkIfInside(end, this.vertices))){
 			//deleteNode
 		}
 	}
@@ -65,6 +65,7 @@ class Node {
 		var interPoint;
 		var verticesLeft = [];
 		var verticesRight = [];
+		var mod;
 
 		//geting y = ax+b
 		if(end.x - start.x == 0)
@@ -78,50 +79,38 @@ class Node {
 		newEnd.y = a * width + b;
 
 		//testing if line segments intersect and getting those points
-		for(var i = 0; i < vertices.length; i++){
-			auxStart.x = vertices[i][0];
-			auxStart.y = vertices[i][1];
-			mod = (i+1)%vertices.length;
-			auxEnd.x = vertices[mod][0];
-			auxEnd.y = vertices[mod][1];
+		for(var i = 0; i < this.vertices.length; i++){
+			auxStart.x = this.vertices[i][0];
+			auxStart.y = this.vertices[i][1];
+			mod = (i+1)%this.vertices.length;
+			auxEnd.x = this.vertices[mod][0];
+			auxEnd.y = this.vertices[mod][1];
 
-			if(intersectionExists(start, end, auxStart, auxEnd)){
-				interPoint = intersectionPoint(newStart, newEnd, auxStart, auxEnd);
+			if(this.intersectionExists(start, end, auxStart, auxEnd)){
+				interPoint = this.intersectionPoint(newStart, newEnd, auxStart, auxEnd);
 				verticesLeft.push([interPoint.x, interPoint.y]);
 				verticesRight.push([interPoint.x, interPoint.y]);
 			}
 
-			if(relativePosition(newStart, newEnd, auxStart) >= 0)
+			if(this.relativePosition(newStart, newEnd, auxStart) >= 0)
 				verticesLeft.push([auxStart.x, auxStart.y]);
-			if(relativePosition(newStart, newEnd, auxStart) <= 0)
+			if(this.relativePosition(newStart, newEnd, auxStart) <= 0)
 				verticesRight.push([auxStart.x, auxStart.y]);
 		}
 
-		arrangePoints(verticesLeft);
-		arrangePoints(verticesRight);
+		console.log(verticesLeft);
+		console.log(verticesRight);
+		this.arrangePoints(verticesLeft);
+		this.arrangePoints(verticesRight);
 
+		console.log("a");
+		console.log(verticesLeft);
+		console.log("b");
+		console.log(verticesRight);
 		this.children[0] = new Node(verticesLeft, this.color);
 		this.children[1] = new Node(verticesRight, null);
 	}
 
-	// checkIfInside(point, vertices){
-	// 	//baseado em https://github.com/substack/point-in-polygon
-	// 	var x = point.x;
-	// 	var y = point.y;
-	// 	isInside = false;
-
-	// 	for (var i = 0, j = vertices.length - 1; i < vertices.length; j = i++){
-	// 		var xi = vertices[i][0];
-	// 		var yi = vertices[i][1];
-	// 		var xj = vertices[j][0];
-	// 		var yj = vertices[j][1];
-
-	// 		if (((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi))
-	// 			inside = !inside;
-	// 	}
-
-	// 	return inside;
-	// }
 
 	intersectionExists(startR, endR, startS, endS){
 		//baseado em https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
